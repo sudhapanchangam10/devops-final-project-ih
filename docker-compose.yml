@@ -1,0 +1,63 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: expensy-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: expensy-redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: expensy-backend:latest
+    build:
+      context: ./expensy_backend
+      dockerfile: Dockerfile
+    container_name: expensy-backend
+    restart: unless-stopped
+    env_file:
+      - ./expensy_backend/.env.docker
+    environment:
+      DATABASE_URI: mongodb://mongo:27017/expensy
+      PORT: "8706"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+    ports:
+      - "8706:8706"
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    image: expensy-frontend:latest
+    build:
+      context: ./expensy_frontend
+      dockerfile: Dockerfile.frontend
+    container_name: expensy-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  mongo_data:
+  redis_data:

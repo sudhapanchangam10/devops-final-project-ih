@@ -1,0 +1,8 @@
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sudha-expensy-monitoring
+  labels:
+    app.kubernetes.io/part-of: sudha-expensy

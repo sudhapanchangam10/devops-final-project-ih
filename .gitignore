@@ -1,10 +1,64 @@
-
 # Local Docker environment file
 expensy_backend/.env.docker
 
 # Local secrets and Terraform artifacts
 /expensy_backend/.env
-/expensy_backend/.env.docker
+
 /terraform/terraform.tfstate*
 /terraform/*.tfplan
 /terraform/.terraform/
+terraform/terraform.tfstate*
+terraform/*.tfvars
+terraform/*.lock.hcl
+terraform/*.backup
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+
+
+expensy_frontend/node_modules
+expensy_frontend/.pnp
+expensy_frontend/.pnp.js
+
+# testing
+expensy_frontend/coverage
+
+# next.js
+expensy_frontend/.next/
+expensy_frontend/out/
+expensy_frontend/build
+
+# misc
+expensy_frontend/.DS_Store
+expensy_frontend/*.pem
+
+# debug
+expensy_frontend/npm-debug.log*
+expensy_frontend/yarn-debug.log*
+expensy_frontend/yarn-error.log*
+expensy_frontend/.pnpm-debug.log*
+
+# local env files
+expensy_frontend/.env.local
+expensy_frontend/.env.development.local
+expensy_frontend/.env.test.local
+expensy_frontend/.env.production.local
+
+# turbo
+expensy_frontend/.turbo
+
+expensy_frontend/.contentlayer
+expensy_frontend/.env
+
+#Terraform
+terraform/terraform.tfstate*
+terraform/*.tfplan
+terraform/.terraform/
+terraform/*.tfvars
+terraform/*.lock.hcl
+terraform/*.backup
+terraform/environments/dev.tfvars
+
+expensy_backend/node_modules/
+expensy_backend/dist/
