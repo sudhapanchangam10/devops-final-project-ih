@@ -1,0 +1,23 @@
+# Use Node.js 20
+FROM node:20-bookworm-slim
+
+# Set working directory
+WORKDIR /app
+
+# Set production environment
+ENV NODE_ENV=production
+
+# Copy package definitions
+COPY package.json package-lock.json ./
+
+# Copy installed dependencies from Ubuntu
+COPY node_modules ./node_modules
+
+# Copy compiled JavaScript application
+COPY dist ./dist
+
+# Expose backend port
+EXPOSE 8706
+
+# Start backend
+CMD ["node", "dist/server.js"]

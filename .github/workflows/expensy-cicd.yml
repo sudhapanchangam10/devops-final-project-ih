@@ -1,0 +1,97 @@
+name: Expensy CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  ACR_NAME: sudhaexpensyacr8zxn4h
+  ACR_LOGIN_SERVER: sudhaexpensyacr8zxn4h.azurecr.io
+  AKS_RESOURCE_GROUP: sudha-expensy-dev-rg
+  AKS_CLUSTER_NAME: sudha-expensy-dev-aks
+
+jobs:
+  build-push-deploy:
+    name: Build, Push and Deploy Expensy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend
+        working-directory: expensy_frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build backend
+        working-directory: expensy_backend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Login to Azure using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to existing ACR
+        run: az acr login --name "$ACR_NAME"
+
+      - name: Build and push frontend image
+        run: |
+          IMAGE="$ACR_LOGIN_SERVER/expensy-frontend:${GITHUB_SHA}"
+          docker build \
+            -f expensy_frontend/Dockerfile.frontend \
+            -t "$IMAGE" \
+            expensy_frontend
+          docker push "$IMAGE"
+
+      - name: Build and push backend image
+        run: |
+          IMAGE="$ACR_LOGIN_SERVER/expensy-backend:${GITHUB_SHA}"
+          docker build \
+            -f expensy_backend/Dockerfile.backend \
+            -t "$IMAGE" \
+            expensy_backend
+          docker push "$IMAGE"
+
+      - name: Connect to existing AKS cluster
+        run: |
+          az aks get-credentials \
+            --resource-group "$AKS_RESOURCE_GROUP" \
+            --name "$AKS_CLUSTER_NAME" \
+            --overwrite-existing
+
+      - name: Deploy frontend and backend
+        run: |
+          kubectl set image deployment/frontend \
+            frontend="$ACR_LOGIN_SERVER/expensy-frontend:${GITHUB_SHA}" \
+            -n default
+
+          kubectl set image deployment/backend \
+            backend="$ACR_LOGIN_SERVER/expensy-backend:${GITHUB_SHA}" \
+            -n default
+
+      - name: Verify deployment rollouts
+        run: |
+          kubectl rollout status deployment/frontend \
+            -n default --timeout=180s
+
+          kubectl rollout status deployment/backend \
+            -n default --timeout=180s
+
+          kubectl get deployments frontend backend -n default

@@ -1,0 +1,10 @@
+
+# Local Docker environment file
+expensy_backend/.env.docker
+
+# Local secrets and Terraform artifacts
+/expensy_backend/.env
+/expensy_backend/.env.docker
+/terraform/terraform.tfstate*
+/terraform/*.tfplan
+/terraform/.terraform/
